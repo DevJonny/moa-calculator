@@ -17,6 +17,10 @@ export function clickInInches(clickMoa, distanceYards) {
   return clickMoa * moaInInches(distanceYards);
 }
 
+export function offsetForClicks(clicks, clickMoa, distanceYards) {
+  return clicks * clickInInches(clickMoa, distanceYards);
+}
+
 export function clicksForOffset(offsetInches, clickMoa, distanceYards) {
   const perClick = clickInInches(clickMoa, distanceYards);
   return perClick > 0 ? offsetInches / perClick : 0;

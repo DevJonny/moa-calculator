@@ -52,12 +52,16 @@
     </section>
 
     <section class="field">
-      <h2><label for="offset">Clicks to move</label></h2>
-      <div class="input-row">
-        <input id="offset" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
-        <span class="suffix" id="offset-unit">in</span>
+      <h2 id="mode-label">Adjust</h2>
+      <div class="segmented" role="radiogroup" aria-labelledby="mode-label" id="mode">
+        <button type="button" role="radio" data-value="offset"></button>
+        <button type="button" role="radio" data-value="clicks"></button>
       </div>
-      <p class="clicks" id="clicks"></p>
+      <div class="input-row adjust">
+        <input id="amount" type="number" min="0" placeholder="0" aria-labelledby="mode-label">
+        <span class="suffix" id="amount-unit"></span>
+      </div>
+      <p class="clicks" id="converted"></p>
     </section>
 
     <footer>Uses true MOA: 1.047″ at 100 yd. Many scopes round this to 1″.</footer>

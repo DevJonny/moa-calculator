@@ -103,6 +103,8 @@ input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
   font-weight: 600;
 }
 
+.input-row.adjust { margin-top: 8px; }
+
 .presets { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
 
 .presets button {
