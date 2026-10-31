@@ -1,0 +1,9 @@
+{
+  "name": "moa-calculator",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "icons": "node scripts/make-icons.js"
+  }
+}
