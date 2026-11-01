@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Same crosshair as the web app icon, kept inside the 66dp adaptive-icon safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:pathData="M54,32a22,22 0,1 1,0 44a22,22 0,1 1,0 -44"
+        android:strokeWidth="3"
+        android:strokeColor="#F2A541" />
+    <path
+        android:pathData="M54,26V48M54,60V82M26,54H48M60,54H82"
+        android:strokeWidth="3"
+        android:strokeColor="#F2A541" />
+    <path
+        android:fillColor="#F2A541"
+        android:pathData="M54,51a3,3 0,1 1,0 6a3,3 0,1 1,0 -6" />
+</vector>
