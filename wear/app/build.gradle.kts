@@ -17,6 +17,13 @@ android {
         versionName = "1.0"
     }
 
+    // A shared debug key so builds from any machine can update the app on the watch in place.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = rootProject.file("debug.keystore")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

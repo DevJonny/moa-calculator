@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,19 +28,24 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.AppScaffold
+import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.ColorScheme
 import androidx.wear.compose.material3.CompactButton
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Text
 import java.util.Locale
+import kotlin.math.roundToInt
 
 private val CLICK_VALUES = listOf(0.125 to "⅛", 0.25 to "¼", 0.5 to "½", 1.0 to "1")
 private const val DISTANCE_STEP = 5
 private const val MAX_DISTANCE = 1500
 private const val MAX_CLICKS = 200
+private const val INCH_STEP = 0.25
+private const val CM_STEP = 0.5
+private const val MAX_OFFSET = 100.0
 
 // Rotary pixels per step. The Pixel Watch crown is smooth, so this sets how far a turn moves a value.
-private const val ROTARY_PIXELS_PER_STEP = 30f
+private const val ROTARY_PIXELS_PER_STEP = 60f
 
 // Matches the web app's accent so the crown-controlled value stands out.
 private val colorScheme = ColorScheme(
@@ -48,7 +54,10 @@ private val colorScheme = ColorScheme(
     onPrimary = Color(0xFF1A1206),
 )
 
-private enum class Field { DISTANCE, CLICKS }
+private enum class Field { DISTANCE, ADJUST }
+
+// Same two directions as the web app's Adjust section.
+private enum class AdjustMode { CLICKS_TO_OFFSET, OFFSET_TO_CLICKS }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,26 +75,42 @@ class MainActivity : ComponentActivity() {
 private fun MoaScreen(prefs: SharedPreferences) {
     var clickIndex by remember { mutableIntStateOf(prefs.getInt("click", 1)) }
     var metric by remember { mutableStateOf(prefs.getBoolean("metric", false)) }
-    var distance by remember { mutableIntStateOf(prefs.getInt("distance", 100)) }
+    var distance by remember { mutableIntStateOf(prefs.getInt("distance", 25)) }
     var clicks by remember { mutableIntStateOf(prefs.getInt("clicks", 4)) }
+    var offset by remember { mutableFloatStateOf(prefs.getFloat("offset", 1f)) }
+    var mode by remember {
+        mutableStateOf(AdjustMode.valueOf(prefs.getString("mode", null) ?: AdjustMode.CLICKS_TO_OFFSET.name))
+    }
     var active by remember { mutableStateOf(Field.DISTANCE) }
     var rotaryRemainder by remember { mutableFloatStateOf(0f) }
     val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(clickIndex, metric, distance, clicks) {
+    LaunchedEffect(clickIndex, metric, distance, clicks, offset, mode) {
         prefs.edit()
             .putInt("click", clickIndex)
             .putBoolean("metric", metric)
             .putInt("distance", distance)
             .putInt("clicks", clicks)
+            .putFloat("offset", offset)
+            .putString("mode", mode.name)
             .apply()
     }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     val (clickMoa, clickLabel) = CLICK_VALUES[clickIndex]
+    val lengthUnit = if (metric) "cm" else "in"
     val yards = Moa.toYards(distance.toDouble(), metric)
     val perClick = Moa.clickInInches(clickMoa, yards)
-    val moved = Moa.offsetForClicks(clicks, clickMoa, yards)
+    val adjustText = when (mode) {
+        AdjustMode.CLICKS_TO_OFFSET ->
+            "${plural(clicks, "click")} = ${length(Moa.offsetForClicks(clicks, clickMoa, yards), metric)}"
+        AdjustMode.OFFSET_TO_CLICKS -> {
+            val offsetInches = if (metric) offset * 10 / Moa.MM_PER_INCH else offset.toDouble()
+            val needed = Moa.clicksForOffset(offsetInches, clickMoa, yards).roundToInt()
+            val shown = if (metric) String.format(Locale.UK, "%.1f cm", offset) else String.format(Locale.UK, "%.2f″", offset)
+            "$shown = ${plural(needed, "click")}"
+        }
+    }
     val colors = MaterialTheme.colorScheme
     fun highlight(field: Field) = if (active == field) colors.primary else colors.onSurfaceVariant
 
@@ -99,7 +124,15 @@ private fun MoaScreen(prefs: SharedPreferences) {
                     rotaryRemainder -= steps * ROTARY_PIXELS_PER_STEP
                     when (active) {
                         Field.DISTANCE -> distance = (distance + steps * DISTANCE_STEP).coerceIn(DISTANCE_STEP, MAX_DISTANCE)
-                        Field.CLICKS -> clicks = (clicks + steps).coerceIn(0, MAX_CLICKS)
+                        Field.ADJUST -> when (mode) {
+                            AdjustMode.CLICKS_TO_OFFSET -> clicks = (clicks + steps).coerceIn(0, MAX_CLICKS)
+                            AdjustMode.OFFSET_TO_CLICKS -> {
+                                val step = if (metric) CM_STEP else INCH_STEP
+                                // Snap to the step so repeated float adds don't drift.
+                                val next = (Math.round(offset / step) + steps) * step
+                                offset = next.coerceIn(0.0, MAX_OFFSET).toFloat()
+                            }
+                        }
                     }
                 }
                 true
@@ -108,9 +141,11 @@ private fun MoaScreen(prefs: SharedPreferences) {
             .focusable(),
         contentAlignment = Alignment.Center,
     ) {
+        // Nudged down to clear the time text at the top of the round screen.
         Column(
+            modifier = Modifier.padding(top = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 CompactButton(onClick = { clickIndex = (clickIndex + 1) % CLICK_VALUES.size }) {
@@ -122,7 +157,7 @@ private fun MoaScreen(prefs: SharedPreferences) {
             }
             Text(
                 text = "$distance ${if (metric) "m" else "yd"}",
-                style = MaterialTheme.typography.numeralMedium,
+                style = MaterialTheme.typography.numeralSmall,
                 color = highlight(Field.DISTANCE),
                 modifier = Modifier.clickable { active = Field.DISTANCE },
             )
@@ -132,11 +167,20 @@ private fun MoaScreen(prefs: SharedPreferences) {
                 color = colors.onSurfaceVariant,
             )
             Text(
-                text = "$clicks clicks = ${length(moved, metric)}",
+                text = adjustText,
                 style = MaterialTheme.typography.titleMedium,
-                color = highlight(Field.CLICKS),
-                modifier = Modifier.clickable { active = Field.CLICKS },
+                color = highlight(Field.ADJUST),
+                modifier = Modifier.clickable { active = Field.ADJUST },
             )
+            CompactButton(
+                onClick = {
+                    mode = if (mode == AdjustMode.CLICKS_TO_OFFSET) AdjustMode.OFFSET_TO_CLICKS else AdjustMode.CLICKS_TO_OFFSET
+                    active = Field.ADJUST
+                },
+                colors = ButtonDefaults.filledTonalButtonColors(),
+            ) {
+                Text(if (mode == AdjustMode.CLICKS_TO_OFFSET) "clicks → $lengthUnit" else "$lengthUnit → clicks")
+            }
         }
     }
 }
@@ -144,3 +188,5 @@ private fun MoaScreen(prefs: SharedPreferences) {
 private fun length(inches: Double, metric: Boolean): String =
     if (metric) String.format(Locale.UK, "%.2f cm", inches * Moa.MM_PER_INCH / 10)
     else String.format(Locale.UK, "%.3f″", inches)
+
+private fun plural(n: Int, word: String) = "$n $word${if (n == 1) "" else "s"}"

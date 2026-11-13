@@ -16,4 +16,12 @@ class MoaTest {
     @Test
     fun `8 quarter MOA clicks at 50 yards moves 1_047 inches`() =
         assertEquals(1.047, Moa.offsetForClicks(8, 0.25, 50.0), 0.001)
+
+    @Test
+    fun `2 inches at 100 yards with quarter MOA clicks is 7_6 clicks`() =
+        assertEquals(7.639, Moa.clicksForOffset(2.0, 0.25, 100.0), 0.001)
+
+    @Test
+    fun `zero distance gives zero clicks rather than infinity`() =
+        assertEquals(0.0, Moa.clicksForOffset(2.0, 0.25, 0.0), 0.0)
 }

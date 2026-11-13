@@ -22,4 +22,9 @@ object Moa {
 
     fun offsetForClicks(clicks: Int, clickMoa: Double, distanceYards: Double): Double =
         clicks * clickInInches(clickMoa, distanceYards)
+
+    fun clicksForOffset(offsetInches: Double, clickMoa: Double, distanceYards: Double): Double {
+        val perClick = clickInInches(clickMoa, distanceYards)
+        return if (perClick > 0) offsetInches / perClick else 0.0
+    }
 }
