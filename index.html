@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#14171a">
-  <meta name="description" content="Work out how far each scope click moves your point of impact at any distance.">
+  <meta name="description" content="Scope click values in MOA and mil-dot holdover from your zero, at any distance.">
   <title>MOA Calculator</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
@@ -16,7 +16,12 @@
   <main>
     <h1>MOA Calculator</h1>
 
-    <section class="field">
+    <div class="segmented" role="radiogroup" aria-label="Calculator" id="tab">
+      <button type="button" role="radio" data-value="moa">MOA clicks</button>
+      <button type="button" role="radio" data-value="mil">Mil-dot holdover</button>
+    </div>
+
+    <section class="field" data-tab="moa">
       <h2 id="click-label">Scope click value</h2>
       <div class="segmented" role="radiogroup" aria-labelledby="click-label" id="click">
         <button type="button" role="radio" data-value="0.125">⅛ MOA</button>
@@ -35,23 +40,30 @@
           <button type="button" role="radio" data-value="m">m</button>
         </div>
       </div>
-      <div class="presets" id="presets">
+      <div class="presets" id="presets" data-tab="moa">
         <button type="button" data-value="25">25</button>
         <button type="button" data-value="50">50</button>
         <button type="button" data-value="100">100</button>
         <button type="button" data-value="200">200</button>
         <button type="button" data-value="300">300</button>
       </div>
+      <div class="presets" id="mil-presets" data-tab="mil">
+        <button type="button" data-value="10">10</button>
+        <button type="button" data-value="20">20</button>
+        <button type="button" data-value="30">30</button>
+        <button type="button" data-value="40">40</button>
+        <button type="button" data-value="50">50</button>
+      </div>
     </section>
 
-    <section class="result" aria-live="polite">
+    <section class="result" aria-live="polite" data-tab="moa">
       <p class="caption">Each click moves impact</p>
       <p class="big"><span id="click-primary">–</span></p>
       <p class="secondary" id="click-secondary"></p>
       <p class="secondary" id="one-moa"></p>
     </section>
 
-    <section class="field">
+    <section class="field" data-tab="moa">
       <h2 id="mode-label">Adjust</h2>
       <div class="segmented" role="radiogroup" aria-labelledby="mode-label" id="mode">
         <button type="button" role="radio" data-value="offset"></button>
@@ -64,7 +76,36 @@
       <p class="clicks" id="converted"></p>
     </section>
 
-    <footer>Uses true MOA: 1.047″ at 100 yd. Many scopes round this to 1″.</footer>
+    <section class="result" aria-live="polite" data-tab="mil">
+      <p class="caption" id="hold-caption">Hold over</p>
+      <p class="big"><span id="hold-primary">–</span></p>
+      <p class="secondary" id="hold-secondary"></p>
+      <p class="secondary" id="hold-dots"></p>
+    </section>
+
+    <section class="field" data-tab="mil">
+      <h2>Holdover from your zero</h2>
+      <table class="hold-table">
+        <thead><tr><th id="table-unit">yd</th><th>Hold (dots)</th><th>Impact with no hold</th></tr></thead>
+        <tbody id="hold-table"></tbody>
+      </table>
+    </section>
+
+    <details class="field setup" data-tab="mil">
+      <summary>Rifle setup</summary>
+      <div class="setup-grid">
+        <label>Muzzle velocity (fps)<input id="mv" type="number" inputmode="decimal" min="0" step="any"></label>
+        <label>Pellet BC (G1)<input id="bc" type="number" inputmode="decimal" min="0" step="any"></label>
+        <label><span>Sight height (<span id="sight-unit">in</span>)</span><input id="sight" type="number" inputmode="decimal" min="0" step="any"></label>
+        <label><span>Zeroed at (<span id="zero-unit">yd</span>)</span><input id="zero" type="number" inputmode="decimal" min="0" step="any"></label>
+        <label>Reticle true at (×)<input id="trueMag" type="number" inputmode="decimal" min="0" step="any"></label>
+        <label>Shooting at (×)<input id="mag" type="number" inputmode="decimal" min="0" step="any"></label>
+      </div>
+      <p class="hint">Defaults suit a sub-12 ft-lb .177 like the Gamo Phox. Check holds on paper at a few distances, then tweak velocity or BC until they match.</p>
+    </details>
+
+    <footer data-tab="moa">Uses true MOA: 1.047″ at 100 yd. Many scopes round this to 1″.</footer>
+    <footer data-tab="mil">Standard air, no wind. On a second focal plane scope, dots only read true at one magnification.</footer>
   </main>
 </body>
 </html>

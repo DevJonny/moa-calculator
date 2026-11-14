@@ -140,3 +140,50 @@ input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .clicks strong { color: var(--accent); }
 
 footer { color: var(--muted); font-size: 0.8rem; text-align: center; }
+
+/* Tab panels toggle with the hidden attribute, which display rules above would otherwise override. */
+[hidden] { display: none !important; }
+
+.hold-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.hold-table th {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: left;
+  padding: 0 8px 6px;
+}
+.hold-table td {
+  padding: 8px;
+  border-top: 1px solid var(--border);
+}
+.hold-table td:nth-child(2) { font-weight: 700; }
+.hold-table tr.current td { background: var(--surface); color: var(--accent); }
+
+.setup summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.setup[open] summary { margin-bottom: 12px; }
+
+.setup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.setup-grid label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.setup-grid input { font-size: 1.1rem; padding: 10px 12px; }
+
+.hint { color: var(--muted); font-size: 0.8rem; margin: 12px 0 0; }

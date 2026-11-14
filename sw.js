@@ -1,11 +1,12 @@
 // Bump only when ASSETS changes; content updates arrive via the fetch handler.
-const CACHE = "moa-v1";
+const CACHE = "moa-v2";
 const ASSETS = [
   "./",
   "index.html",
   "style.css",
   "app.js",
   "moa.js",
+  "ballistics.js",
   "manifest.webmanifest",
   "icons/icon-192.png",
   "icons/icon-512.png",
